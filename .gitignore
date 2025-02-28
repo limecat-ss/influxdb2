@@ -1,0 +1,14 @@
+influxdb3/
+grafana2/
+old_compose
+config
+webhook
+config
+portainer_data/
+influxdb/
+zigbee2mqtt/data/log/
+telegraf/_old/
+.env
+grafana/plugins/
+
+

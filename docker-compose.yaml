@@ -1,0 +1,118 @@
+version: '3.5'
+
+networks:
+  network-influxdb:
+    driver: bridge
+
+services:
+  #INFLUXDB
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    restart: always
+    volumes:
+      # Mount for influxdb data directory and configuration
+      - ./influxdb:/var/lib/influxdb2:rw
+    environment:
+      - TZ=America/Fortaleza
+    networks:
+      - network-influxdb
+    ports:
+      - "8086:8086"
+
+  #TELEGRAF
+  telegraf:
+    container_name: telegraf
+    image: telegraf:1.25
+    command: -config-directory /etc/telegraf/telegraf.d
+    links:
+      - influxdb
+    restart: always
+    volumes:
+      # Mount for telegraf config
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf
+      - ./telegraf/telegraf.d/:/etc/telegraf/telegraf.d:rw
+    environment:
+      - TZ=America/Fortaleza
+    env_file:
+      - .env
+    networks:
+      - network-influxdb
+    ports:
+      - "1883:1883"
+
+ #GRAFANA
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss:10.3.4
+    networks:
+      - network-influxdb
+    links:
+      - influxdb
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_AUTH_LOGIN_MAXIMUM_INACTIVE_LIFETIME_DURATION=3M
+      - GF_AUTH_TOKEN_ROTATION_INTERVAL_MINUTES=1000
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+      
+
+    volumes:
+      - ./grafana:/var/lib/grafana:rw
+      - ./grafana/img:/usr/share/grafana/public/img/minhas_imagens:rw
+      - ./grafana/img/bg:/usr/share/grafana/public/img/bg:rw
+    user: root:root
+ 
+  homeassistant:
+    container_name: homeassistant
+    image: homeassistant/home-assistant:latest
+    networks:
+      - network-influxdb
+    ports:
+      - '8123:8123'
+    volumes:
+      - ./hass/config:/config
+      - ./hass/etc/localtime:/etc/localtime:ro
+    environment:
+      - TZ=America/Fortaleza
+    restart: always
+    privileged: true
+ 
+  node-red:
+    container_name: nodered
+    image: nodered/node-red:latest
+    environment:
+      - TZ=America/Fortaleza
+    restart: always
+    ports:
+      - "1880:1880"
+      - "9009:9009"
+    networks:
+      - network-influxdb
+    volumes:
+      - ./nodered:/data
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9443:9443" 
+    volumes:
+      - ./portainer_data:/data  # Armazena os dados do Portainer
+      - /var/run/docker.sock:/var/run/docker.sock  # Permite gerenciar Docker
+    environment:
+      - TZ=America/Fortaleza  # Ajuste para seu fuso horário
+    networks:
+      - network-influxdb
+  
+  influxdb3:
+    image: quay.io/influxdb/influxdb3-core:latest
+    container_name: influxdb3
+    volumes:
+      - ./influxdb3:/home/influxdb3
+    user: root:root
+    command: serve --node-id my_host --object-store file --data-dir /home/influxdb3
+    ports:
+    - "8181:8181"

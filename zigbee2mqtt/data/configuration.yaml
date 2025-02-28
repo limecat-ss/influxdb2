@@ -1,0 +1,24 @@
+homeassistant: true
+permit_join: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://10.31.147.100
+  user: serpro
+  password: serpro832
+serial:
+  port: /dev/ttyACM0
+frontend: true
+devices:
+  '0x00158d0007e48d00':
+    friendly_name: '0x00158d0007e48d00'
+    homeassistant: {}
+    optimistic: true
+    retain: true
+  '0x00124b002e20d3f4':
+    friendly_name: '0x00124b002e20d3f4'
+  '0x00158d00091df128':
+    friendly_name: '0x00158d00091df128'
+  '0xa4c1385fa0274997':
+    friendly_name: '0xa4c1385fa0274997'
+  '0xa4c138a82564407f':
+    friendly_name: '0xa4c138a82564407f'

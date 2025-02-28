@@ -1,0 +1,493 @@
+[
+    {
+        "id": "0ea7b445a8800de5",
+        "type": "tab",
+        "label": "Alarme Perimetral",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1737cdfa356ae291",
+        "type": "mqtt-broker",
+        "name": "Broker Serpro",
+        "broker": "10.31.147.100",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "6fc8926708104856",
+        "type": "tcp in",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "server": "server",
+        "host": "10.38.146.33",
+        "port": "9009",
+        "datamode": "stream",
+        "datatype": "buffer",
+        "newline": "",
+        "topic": "",
+        "trim": false,
+        "base64": false,
+        "tls": "",
+        "x": 140,
+        "y": 340,
+        "wires": [
+            [
+                "c076c2c269f6d537",
+                "2fb6acf4ae6ef150",
+                "c7c93e781e1e2f6f"
+            ]
+        ]
+    },
+    {
+        "id": "5693eba77c79ad38",
+        "type": "tcp out",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "host": "10.38.146.33",
+        "port": "9009",
+        "beserver": "reply",
+        "base64": false,
+        "end": false,
+        "tls": "",
+        "x": 920,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "c076c2c269f6d537",
+        "type": "debug",
+        "z": "0ea7b445a8800de5",
+        "name": "debug 1",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "2fb6acf4ae6ef150",
+        "type": "function",
+        "z": "0ea7b445a8800de5",
+        "name": "function 9",
+        "func": "\nmsg.payload = Buffer.from([0xfe]);\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 100,
+        "wires": [
+            [
+                "f415bab609e877aa"
+            ]
+        ]
+    },
+    {
+        "id": "f415bab609e877aa",
+        "type": "delay",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 680,
+        "y": 100,
+        "wires": [
+            [
+                "5693eba77c79ad38",
+                "449f3bfc221989a4"
+            ]
+        ]
+    },
+    {
+        "id": "449f3bfc221989a4",
+        "type": "debug",
+        "z": "0ea7b445a8800de5",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "c7c93e781e1e2f6f",
+        "type": "function",
+        "z": "0ea7b445a8800de5",
+        "name": "Full",
+        "func": "\n// Receber o array no payload\nlet data = msg.payload;\n\n\nconst predefinedSequence = [0x11, 0xb0];\n\n\n// Compara os dois primeiros bytes do pacote com a sequência predefinida\nif (data[0] !== predefinedSequence[0] || data[1] !== predefinedSequence[1]) {\n     msg.payload = `Valores iniciais não correspondem. `;\n    return; // Envia a mensagem de erro\n}\n\n\n// Função para tratar valores iguais a 0xa como zero\nfunction treatAsZero(value) {\n    return (value === 0xa) ? 0 : value;\n}\n\n// Converter os valores de hexadecimal para decimal\nlet Q = treatAsZero(data[9]); // Posição 9 (em decimal)\nlet XYZ = `${treatAsZero(data[10])}${treatAsZero(data[11])}${treatAsZero(data[12])}`; // Concatenar os valores de XYZ como string\nlet ZZZ = `${treatAsZero(data[15])}${treatAsZero(data[16])}${treatAsZero(data[17])}`; // Concatenar os valores de ZZZ como string\n\n// Criar uma chave única para combinar os valores\nlet combinationKey = `${Q}-${XYZ}-${ZZZ}`;\n\n// Mapear combinações para URLs de imagens\n//let imageMap = {\n //   \"1-130-001\": \"https://dummyimage.com/300x200/ff7f7f/ffffff&text=Zona01\", // Disparo zona 01\n //   \"1-130-002\": \"https://dummyimage.com/300x200/ff7f7f/ffffff&text=Zona02\",  // Disparo zona 02\n   \n//};\n\n// Obter a URL da imagem correspondente\n//msg.payload = imageMap[combinationKey] || \"https://dummyimage.com/300x200/ff7f7f/ffffff&text=Padrão\"; // Imagem padrão se não houver correspondência\n//msg.payload = imageMap[combinationKey]\n\n/*\n// Verificar se a combinação começa com \"3-130-\" (independente do que venha depois)\nif (/^3-130-/.test(combinationKey)) {\n    msg.payload = \"https://dummyimage.com/300x200/cccccc/000000&text=Default\"; // Imagem para qualquer combinação \"3-130-\"\n\n} else {\n    // Obter a URL da imagem correspondente, ou imagem padrão\n //   msg.payload = imageMap[combinationKey] || \"https://dummyimage.com/300x200/cccccc/000000&text=Default\";\n}\n*/\n\nmsg.payload = combinationKey;\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 340,
+        "wires": [
+            [
+                "5471defbbc9145cd",
+                "e18f0b37a4c38c2e",
+                "9738f387d8fa44d0"
+            ]
+        ]
+    },
+    {
+        "id": "6e4b6a9adedc1f98",
+        "type": "mqtt out",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "topic": "status/alarme/usuario",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1737cdfa356ae291",
+        "x": 1080,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "d87ef4f41f899175",
+        "type": "mqtt out",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "topic": "status/alarme/zonas",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1737cdfa356ae291",
+        "x": 800,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "5471defbbc9145cd",
+        "type": "mqtt out",
+        "z": "0ea7b445a8800de5",
+        "d": true,
+        "name": "",
+        "topic": "status/alarme/full",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1737cdfa356ae291",
+        "x": 670,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e18f0b37a4c38c2e",
+        "type": "switch",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "401",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "1-130",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "3-130",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "3-130",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 4,
+        "x": 430,
+        "y": 460,
+        "wires": [
+            [
+                "6e4b6a9adedc1f98"
+            ],
+            [
+                "d87ef4f41f899175",
+                "c68b91cf6b64810a"
+            ],
+            [
+                "d87ef4f41f899175"
+            ],
+            [
+                "86705664edd2d82d"
+            ]
+        ]
+    },
+    {
+        "id": "9c32bdf257cd89f0",
+        "type": "inject",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "3-130-012",
+        "payloadType": "str",
+        "x": 200,
+        "y": 500,
+        "wires": [
+            [
+                "e18f0b37a4c38c2e"
+            ]
+        ]
+    },
+    {
+        "id": "d75361afacc8a5ea",
+        "type": "inject",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1-130-002",
+        "payloadType": "str",
+        "x": 200,
+        "y": 620,
+        "wires": [
+            [
+                "e18f0b37a4c38c2e"
+            ]
+        ]
+    },
+    {
+        "id": "3b1c07f7422661b4",
+        "type": "inject",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "3-401-009",
+        "payloadType": "str",
+        "x": 200,
+        "y": 700,
+        "wires": [
+            [
+                "e18f0b37a4c38c2e"
+            ]
+        ]
+    },
+    {
+        "id": "9738f387d8fa44d0",
+        "type": "debug",
+        "z": "0ea7b445a8800de5",
+        "name": "debug 6",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "d618922edd08df67",
+        "type": "inject",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1-130-001",
+        "payloadType": "str",
+        "x": 200,
+        "y": 660,
+        "wires": [
+            [
+                "e18f0b37a4c38c2e"
+            ]
+        ]
+    },
+    {
+        "id": "c68b91cf6b64810a",
+        "type": "mqtt out",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "topic": "status/alarme/imagens",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1737cdfa356ae291",
+        "x": 1080,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "8857cbbcae0d5863",
+        "type": "change",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "^3-130.*",
+                "fromt": "re",
+                "to": "1-130-000",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 660,
+        "wires": [
+            [
+                "c68b91cf6b64810a"
+            ]
+        ]
+    },
+    {
+        "id": "86705664edd2d82d",
+        "type": "delay",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 580,
+        "y": 660,
+        "wires": [
+            [
+                "8857cbbcae0d5863"
+            ]
+        ]
+    },
+    {
+        "id": "7f13e6f5653239d9",
+        "type": "inject",
+        "z": "0ea7b445a8800de5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1-130-012",
+        "payloadType": "str",
+        "x": 200,
+        "y": 460,
+        "wires": [
+            [
+                "e18f0b37a4c38c2e"
+            ]
+        ]
+    }
+]
